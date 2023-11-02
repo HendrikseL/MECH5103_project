@@ -7,7 +7,8 @@ clear all
 
 %%
 %video file location
-vFile = ('/video/testVideo.mp4');
+vFile = ('/video/visiontraffic.avi');
+imgRef = imread('/video/refImage.png');
 
 %turn video into a series of jpeg files
 [frameCount, imageDir] = videoProcessing(vFile);
@@ -20,6 +21,10 @@ for i = 1:1:frameCount
     
     %read in image
     im = imread(imagePath);
-
-    image(im);
+    % Background subtraction with reference image
+    diffImage = double(imgRef) - double(im);
+    % and threshold above the noise level (say it's 10 gray levels.
+    mask = abs(diffImage) > 40;
+    
+    image(diffImage);
 end
