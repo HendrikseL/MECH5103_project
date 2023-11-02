@@ -25,6 +25,6 @@ for i = 1:1:frameCount
     diffImage = double(imgRef) - double(im);
     % and threshold above the noise level (say it's 10 gray levels.
     mask = abs(diffImage) > 40;
-    
-    image(diffImage);
+    %display the white blob
+    image(mask);
 end
