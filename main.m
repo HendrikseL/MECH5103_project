@@ -8,7 +8,7 @@ clear all
 %%
 %video file location
 vFile = ('/video/visiontraffic.avi');
-imgRef = imread('refImage.png');
+imgRef = imread('./video/Frame1.jpg');
 
 %turn video into a series of jpeg files
 [frameCount, imageDir] = videoProcessing(vFile);
@@ -27,4 +27,6 @@ for i = 1:1:frameCount
     mask = abs(diffImage) > 40;
     %display the white blob
     image(mask);
+    %store the file for later use
+    
 end
