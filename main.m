@@ -61,9 +61,9 @@ for i = 1:1:frameCount
     %read in image
     im = imread(imagePath);
     % Background subtraction with reference image
-    diffImage = double(imgRef) - double(im);
+    %diffImage = double(imgRef) - double(im);
     % and threshold above the noise level (say it's 10 gray levels.
-    mask = abs(diffImage) > 40;
+    %mask = abs(diffImage) > 40;
     
-    image(diffImage);
+    %image(diffImage);
 end
