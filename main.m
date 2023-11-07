@@ -9,7 +9,7 @@ close all
 %%
 %video file location
 vFile = ('/video/visiontraffic.avi');
-%imgRef = imread('/video/refImage.png');
+imgRef = imread('./video/refImage.png');
 
 %turn video into a series of jpeg files
 [frameCount, imageDir] = videoProcessing(vFile);
