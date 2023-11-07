@@ -9,7 +9,7 @@ close all
 %%
 %video file location
 vFile = ('/video/visiontraffic.avi');
-imgRef = imread('/video/refImage.png');
+%imgRef = imread('/video/refImage.png');
 
 %turn video into a series of jpeg files
 [frameCount, imageDir] = videoProcessing(vFile);
@@ -46,28 +46,10 @@ pixelCoordinates_scene = [u1_ppm'; v1_ppm'];
 %--------------------------------------------------------------------------
 %Example calculation, to be integrated into main loop when we have
 %centroid determination from pixel subtraction
-car_centroid_p = [1820, 681, 1]; %acquired from pixel coord (u,v,1)
+car_centroid_p = [1820, 681]; %acquired from pixel coord (u,v)
 
-%calculate one of the solutions to the equation yielding a 1x4 vector
-%pixel coord = PPM * world coord
-%world coord = PPMi * pixel coord
-car_centroid_w = PPMi*car_centroid_p';
+[intersection,vect_n] = getWorldCoord(car_centroid_p,PPMi,origin);
 
-%normalize for extra dimension
-car_centroid_w = car_centroid_w ./ car_centroid_w(4);
-
-%calculate unit vector of origin to test_p_w
-origin_to_point = car_centroid_w(1:3)-origin;
-origin_to_point_n = origin_to_point./norm(origin_to_point);
-
-%calculate intersection point
-plane_norm = [0;0;1];
-plane_loc = [0;0;0];
-
-%equation to get intersection of vector+point and plane norm+point
-intersect_p = origin + (plane_loc-origin)'*plane_norm/ ...
-    (plane_norm'*origin_to_point_n) * origin_to_point_n;
-%--------------------------------------------------------------------------
 
 %%
 %This is the main loop
