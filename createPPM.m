@@ -1,6 +1,12 @@
 function [PPM, PPMi, origin] = createPPM(pCoord,wCoord)
-%CREATEPPM Summary of this function goes here
-%   Detailed explanation goes here
+%CREATEPPM Calculate PPM, PPMi, and origin of camera using measurements
+%   inputs
+%       wCoord: vector of length 6 of world coordinate measurements
+%       pCoord: corresponding pixel coordinates of same 6 measured points
+%   outputs
+%       PPM: projection matrix for mapping wCoord to pCoord
+%       PPMi: pseudo inverse of PPM to map pCoord to wCoord
+%       origin: origin of camera taking video
 
     nPpmPoints = 6;
     worldCoord_X = wCoord(1,1:nPpmPoints); 
@@ -37,14 +43,14 @@ function [PPM, PPMi, origin] = createPPM(pCoord,wCoord)
              ai_ppm(5,:);
              bi_ppm(5,:);
              ai_ppm(6,:);
-             bi_ppm(6,:)]
+             bi_ppm(6,:)];
     
     %SVD of A matrix
     [~,~,VA] = svd(A_ppm);
     
     %build PPM matrix from last column of VA
     PPM = reshape(VA(:, end), [4, 3]);
-    PPM = PPM.'
+    PPM = PPM.';
     
     PPM_123 = PPM(:,1:3);
     PPM_4 = PPM(:,4);
