@@ -24,9 +24,9 @@ for i = 1:1:frameCount
     % Background subtraction with reference image
     diffImage = double(imgRef) - double(im);
     % and threshold above the noise level (say it's 10 gray levels.
-    mask = abs(diffImage) > 40;
+    mask = abs(diffImage) > 32;
     %display the white blob
-    image(mask);
     %store the file for later use
-    
+    mask = any(mask, 3);
+    imshow(mask)
 end
