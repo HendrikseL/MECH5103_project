@@ -13,6 +13,8 @@ imgRef = imread('./video/Frame1.jpg');
 %turn video into a series of jpeg files
 [frameCount, imageDir] = videoProcessing(vFile);
 
+hBlob = vision.BlobAnalysis('AreaOutputPort',false,'BoundingBoxOutputPort',false);
+
 %This is the main loop
 %read in each image one by one
 for i = 1:1:frameCount
@@ -28,5 +30,13 @@ for i = 1:1:frameCount
     %display the white blob
     %store the file for later use
     mask = any(mask, 3);
+
+    %Noise reduction and blob centroid detection
+    mask = medfilt2(mask);
+    centroid = hBlob(mask);
     imshow(mask)
+    hold on
+    plot(centroid(:,1),centroid(:,2), 'r.');
+    hold off
+    pause(0.05)
 end
