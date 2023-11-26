@@ -30,10 +30,12 @@ function [intersect_p, o_p_vect] = ...
     %280m length and approximate centroid height at that distance of 1m
     %which is 0.2deg about y, then rotating about the z axis 20deg
     ang1 = -0.2;
+    %ang1 = 0;
     rotation1 = [cosd(ang1)   0   sind(ang1);
                  0            1          0;
                  -sind(ang1)  0   cosd(ang1)];
-    ang2 = -20;
+    %ang2 = -20;
+    ang2 = 15;
     rotation2 = [cosd(ang2)  -sind(ang2)  0;
                  sind(ang2)   cosd(ang2)  0;
                  0            0           1];
@@ -47,7 +49,7 @@ function [intersect_p, o_p_vect] = ...
         (plane_norm_f'*origin_to_point_n) * origin_to_point_n;
 
     %project intersection down to ground plane
-    intersect_p(3) = 0;
+    %intersect_p(3) = 0;
 
     %output vector
     o_p_vect = origin_to_point_n;

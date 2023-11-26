@@ -1,4 +1,4 @@
-function [velocity] = getWorldVelocity(position1, position2, frameRate)
+function [velocity, velocity_abs] = getWorldVelocity(position1, position2, frameRate)
 %GETWORLDVELOCITY Calculated velocity in world coordinates
 %   inputs
 %       position1: t0 world coordinates
@@ -7,6 +7,12 @@ function [velocity] = getWorldVelocity(position1, position2, frameRate)
 %   outputs
 %       velocity: world coordinate velocity
     timeD = 1/frameRate;
-    velocity = (position2 - position1)./timeD;
+
+    x_dkm = (position2(1)-position1(1))/100/1000;
+    y_dkm = (position2(2)-position1(2))/100/1000;
+    x_kmh = x_dkm/timeD*3600;
+    y_kmh = y_dkm/timeD*3600;
+    velocity = [x_kmh y_kmh];
+    velocity_abs = sqrt(x_kmh^2+y_kmh^2);
 end
 

@@ -5,22 +5,30 @@ This function will analyze a video and identify objects moving in it.
 
 clear
 close all
+clc
 
 
 %% SCENE SELECT
 %test case selection and init
 sceneSelect = 3;
 
-if sceneSelect == 1
-    selectionFileName = 'first';
-    selectionCoordPixel = 'Final';
-    selectionCoordWorld = 'Final';
-    selectionPointIndexes = [1 2 3 7 9 5];
-elseif sceneSelect == 3
-    selectionFileName = 'third';
-    selectionCoordPixel = '_v3';
-    selectionCoordWorld = '_v3';
-    selectionPointIndexes = [1 7 8 10 11 12];
+fprintf("Scene %d selected. \n", sceneSelect)
+switch sceneSelect
+    case 1
+        selectionProcessedDir = './video/first1080Files/';
+        selectionFileName = 'first';
+        selectionCoordPixel = 'Final';
+        selectionCoordWorld = 'Final';
+        selectionPointIndexes = [1 2 3 7 9 5];
+    case 3
+        selectionProcessedDir = './video/third1080Files/';
+        selectionFileName = 'third';
+        selectionCoordPixel = '_v3';
+        selectionCoordWorld = '_v3';
+        selectionPointIndexes = [1 7 8 10 11 12];
+    otherwise
+        fprintf("Incorrect scene selection. Exiting. \n")
+        return
 end
 
 
@@ -30,8 +38,12 @@ vFile = append('/video/', selectionFileName, '1080.mp4');
 imgRef = imread('./video/refImage.png');
 
 %turn video into a series of jpeg files
-[frameCount, imageDir] = videoProcessing(vFile);
-
+if exist(selectionProcessedDir,'dir')
+    fprintf("Video file already processed, using local files.\n")
+    imageDir = selectionProcessedDir;
+else
+    [frameCount, imageDir] = videoProcessing(vFile);
+end
 
 %% SCENE INIT
 %Import world coordinate measurements and corresponding pixel points
@@ -77,27 +89,39 @@ pixelCoordinates_scene_f = [u1_ppm_f; v1_ppm_f];
 %Example calculation, to be integrated into main loop when we have
 %centroid determination from pixel subtraction
 
-framerate = 60; %todo: use metadata framerate
+framerate = 3; %todo: use metadata framerate
+
+if exist('testFramePixels.mat','file')
+    load('testFramePixels.mat');
+else
+    for testFrame=1:8
+        testFrameName = append('./video/tempFrames/', int2str(testFrame), '.jpg');
+        imageMatrixScene = imread(testFrameName,'jpg');
+        testFigNum = 8080;
+        figure(testFigNum)
+        imagesc(imageMatrixScene)
+        axis('equal')
+        [test_u(testFrame),test_v(testFrame)] = ginput(1); 
+        close(testFigNum)
+    end
+end
 
 %example centroid data (-1 is invalid)
-centroids_u = [0 0 0 0 0 1 2 3 4 0 0 0 0 0 0 0;
-             0 1 2 3 4 5 0 0 0 0 0 0 0 0 0 0;
-             0 0 0 0 0 0 0 1 2 3 4 5 0 0 0 0;
-             0 0 0 0 0 0 0 0 0 0 0 0 1 2 3 4;
-             0 0 0 0 0 1 2 3 4 0 0 0 0 0 0 0;
-             0 0 0 0 0 1 2 3 4 0 0 0 0 0 0 0];
-centroids_v = [0 0 0 0 0 1 2 3 4 0 0 0 0 0 0 0;
-             0 1 2 3 4 5 0 0 0 0 0 0 0 0 0 0;
-             0 0 0 0 0 0 0 1 2 3 4 5 0 0 0 0;
-             0 0 0 0 0 0 0 0 0 0 0 0 1 2 3 4;
-             0 0 0 0 0 1 2 3 4 0 0 0 0 0 0 0;
-             0 0 0 0 0 1 2 3 4 0 0 0 0 0 0 0];
+centroids_u = test_u;
+centroids_v = test_v;
 maxCars = size(centroids_u,1);
 %first frame detected tracker
 centroidDetected = zeros(maxCars,1);
 %velocity per blob per frame (0 is invalid)
+%TODO: remove after test
+frameCount = length(centroids_u);
+positionsCars_x = zeros(maxCars,frameCount);
+positionsCars_y = zeros(maxCars,frameCount);
+positionsCars_z = zeros(maxCars,frameCount);
+intersectionVectors = zeros(3,frameCount);
 velocitiesCars_x = zeros(maxCars,frameCount);
 velocitiesCars_y = zeros(maxCars,frameCount);
+velocitiesCars_abs = zeros(maxCars,frameCount);
 
 
 %% VELOCITY LOOP
@@ -106,9 +130,9 @@ velocitiesCars_y = zeros(maxCars,frameCount);
 for currFrame=1:frameCount
     %go through every blob and see if it was detected in this frame
     for carCnt=1:maxCars
-        car_centroid_p = [centroids_u(carCnt) centroids_v(carCnt)];
+        car_centroid_p = [centroids_u(carCnt,currFrame) centroids_v(carCnt,currFrame)];
         %centroid value is invalid
-        if (car_centroid_p(1) == -999)
+        if (car_centroid_p(1) == -1)
             %car has been processed and is now out of frame
             %OR
             %car has yet to enter frame
@@ -121,6 +145,9 @@ for currFrame=1:frameCount
             end
             %calculate intersection of this centroid
             [intersection,vect_n] = getWorldCoord(car_centroid_p,PPMi,camOrigin);
+            positionsCars_x(carCnt,currFrame) = intersection(1);
+            positionsCars_y(carCnt,currFrame) = intersection(2);
+            positionsCars_z(carCnt,currFrame) = intersection(3);
         end
         
         %if centroid initialized in this frame, no velocity calc yet
@@ -130,13 +157,13 @@ for currFrame=1:frameCount
         else
             oldCarPos = newCarPos;
             newCarPos = intersection;
-            velocity = getWorldVelocity(oldCarPos, newCarPos, framerate);
-            velocitiesCars_x(carCnt,currFrame) = velocity(1);
-            velocitiesCars_y(carCnt,currFrame) = velocity(2);
+            [velVec, velAbs] = getWorldVelocity(oldCarPos, newCarPos, framerate);
+            velocitiesCars_x(carCnt,currFrame) = velVec(1);
+            velocitiesCars_y(carCnt,currFrame) = velVec(2);
+            velocitiesCars_abs(carCnt,currFrame) = velAbs;
         end
     end
 end
-
 
 %% CENTROID LOOP
 %This is first loop to get centroid data
