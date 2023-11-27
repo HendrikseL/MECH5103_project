@@ -91,8 +91,8 @@ pixelCoordinates_scene_f = [u1_ppm_f; v1_ppm_f];
 
 framerate = 3; %todo: use metadata framerate
 
-if exist('testFramePixels.mat','file')
-    load('testFramePixels.mat');
+if exist('testFramePixels2.mat','file')
+    load('testFramePixels2.mat');
 else
     for testFrame=1:8
         testFrameName = append('./video/tempFrames/', int2str(testFrame), '.jpg');
