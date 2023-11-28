@@ -17,6 +17,8 @@ hBlob = vision.BlobAnalysis('AreaOutputPort',false,'BoundingBoxOutputPort',false
 
 %This is the main loop
 %read in each image one by one
+centroids_u = ones([20, frameCount]).*-1;
+centroids_v = ones([20, frameCount]).*-1;
 for i = 1:1:frameCount
     %create image filepath
     imagePath = fullfile(imageDir, ['Frame' int2str(i), '.jpg']);
@@ -32,11 +34,16 @@ for i = 1:1:frameCount
     mask = any(mask, 3);
 
     %Noise reduction and blob centroid detection
+    %TODO: change to bottom right corner of bounding box
     mask = medfilt2(mask);
     centroid = hBlob(mask);
+    for j = 1:1:size(centroid,1)
+        centroids_u(j,i) = centroid(j,1);
+        centroids_v(j,i) = centroid(j,2);
+    end
     imshow(mask)
     hold on
-    plot(centroid(:,1),centroid(:,2), 'r.');
+    plot(centroids_u(:,i),centroids_v(:,i), 'r.');
     hold off
     pause(0.05)
 end
