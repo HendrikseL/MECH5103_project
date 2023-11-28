@@ -23,7 +23,7 @@ switch sceneSelect
     case 3
         selectionProcessedDir = './video/third1080Files/';
         selectionFileName = 'third';
-        selectionCoordPixel = '_v3';
+        selectionCoordPixel = '_v3_precise';
         selectionCoordWorld = '_v3';
         selectionPointIndexes = [1 7 8 10 11 12];
     otherwise
@@ -110,15 +110,16 @@ end
 centroids_u = test_u;
 centroids_v = test_v;
 maxCars = size(centroids_u,1);
-%first frame detected tracker
-centroidDetected = zeros(maxCars,1);
-%velocity per blob per frame (0 is invalid)
+
 %TODO: remove after test
 frameCount = length(centroids_u);
+
+%first frame that a car is detected tracker
+carDetected = zeros(maxCars,1);
+%initialize all pos/vel arrays
 positionsCars_x = zeros(maxCars,frameCount);
 positionsCars_y = zeros(maxCars,frameCount);
 positionsCars_z = zeros(maxCars,frameCount);
-intersectionVectors = zeros(3,frameCount);
 velocitiesCars_x = zeros(maxCars,frameCount);
 velocitiesCars_y = zeros(maxCars,frameCount);
 velocitiesCars_abs = zeros(maxCars,frameCount);
@@ -140,8 +141,8 @@ for currFrame=1:frameCount
         %centroid value is real
         else
             %centroid yet to be initialized
-            if (centroidDetected(carCnt) == 0)
-                centroidDetected(carCnt) = currFrame;
+            if (carDetected(carCnt) == 0)
+                carDetected(carCnt) = currFrame;
             end
             %calculate intersection of this centroid
             [intersection,vect_n] = getWorldCoord(car_centroid_p,PPMi,camOrigin);
@@ -151,7 +152,7 @@ for currFrame=1:frameCount
         end
         
         %if centroid initialized in this frame, no velocity calc yet
-        if (centroidDetected(carCnt) == currFrame)
+        if (carDetected(carCnt) == currFrame)
             newCarPos = intersection;
         %centroid initialized already, calculate velocity of past 2 frames
         else
