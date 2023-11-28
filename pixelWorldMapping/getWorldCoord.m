@@ -29,7 +29,7 @@ function [intersect_p, o_p_vect] = ...
     %adjust floor plane for centroid intersection, assuming scene's
     %280m length and approximate centroid height at that distance of 1m
     %which is 0.2deg about y, then rotating about the z axis 20deg
-    ang1 = -0.16;
+    ang1 = -0.2;
     %ang1 = 0;
     rotation1 = [cosd(ang1)   0   sind(ang1);
                  0            1          0;
