@@ -7,13 +7,13 @@ clear all
 
 %%
 %video file location
-vFile = ('/video/visiontraffic.avi');
-imgRef = imread('./video/Frame1.jpg');
+vFile = ('/video/third1080.mp4');
 
 %turn video into a series of jpeg files
 [frameCount, imageDir] = videoProcessing(vFile);
 
-
+%create reference image
+imgRef = imread('./video/third1080Files/Frame751.jpg');
 
 %This is the main loop
 %read in each image one by one
