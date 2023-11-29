@@ -10,7 +10,7 @@ clc
 
 %% SCENE SELECT
 %test case selection and init
-sceneSelect = 3;
+sceneSelect = 4;
 
 fprintf("Scene %d selected. \n", sceneSelect)
 switch sceneSelect
@@ -26,6 +26,24 @@ switch sceneSelect
         selectionCoordPixel = '_v3_precise';
         selectionCoordWorld = '_v3';
         selectionPointIndexes = [1 7 8 10 11 12];
+    case 4
+        selectionProcessedDir = './video/fourth1080Files/';
+        selectionFileName = 'fourth';
+        selectionCoordPixel = '_v4_precise';
+        selectionCoordWorld = '_v4';
+        selectionPointIndexes = [1 7 9 11 12 13];
+    case 5
+        selectionProcessedDir = './video/fifth1080Files/';
+        selectionFileName = 'fourth';
+        selectionCoordPixel = '_v5';
+        selectionCoordWorld = '_v5';
+        selectionPointIndexes = [1 4 9 11 12 13];
+    case 6
+        selectionProcessedDir = './video/sixth1080Files/';
+        selectionFileName = 'fourth';
+        selectionCoordPixel = '_v6';
+        selectionCoordWorld = '_v6';
+        selectionPointIndexes = [1 4 9 11 12 13];
     otherwise
         fprintf("Incorrect scene selection. Exiting. \n")
         return
@@ -89,26 +107,26 @@ pixelCoordinates_scene_f = [u1_ppm_f; v1_ppm_f];
 %Example calculation, to be integrated into main loop when we have
 %centroid determination from pixel subtraction
 
-framerate = 3; %todo: use metadata framerate
+framerate = 30; %todo: use metadata framerate
 
-if exist('testFramePixels.mat','file')
-    load('testFramePixels.mat');
+if exist('testFramePixels_v4_2.mat','file')
+    load('testFramePixels_v4_2.mat');
 else
-    for testFrame=1:8
-        testFrameName = append('./video/tempFrames/', int2str(testFrame), '.jpg');
+    for testFrame=405:504
+        testFrameName = append('./video/tempFrames/', selectionFileName, '/Frame', int2str(testFrame), '.jpg');
         imageMatrixScene = imread(testFrameName,'jpg');
         testFigNum = 8080;
         figure(testFigNum)
         imagesc(imageMatrixScene)
         axis('equal')
-        [test_u(testFrame),test_v(testFrame)] = ginput(1); 
+        [test_u(testFrame-404),test_v(testFrame-404)] = ginput(1); 
         close(testFigNum)
     end
 end
 
 %example centroid data (-1 is invalid)
-centroids_u = test_u;
-centroids_v = test_v;
+centroids_u = [test_u; test_u-200];
+centroids_v = [test_v; test_v];
 maxCars = size(centroids_u,1);
 
 %TODO: remove after test
@@ -116,6 +134,9 @@ frameCount = length(centroids_u);
 
 %first frame that a car is detected tracker
 carDetected = zeros(maxCars,1);
+%temporary storage of positions for velocity calcs
+newCarPos = zeros(3,maxCars);
+oldCarPos = zeros(3,maxCars);
 %initialize all pos/vel arrays
 positionsCars_x = zeros(maxCars,frameCount);
 positionsCars_y = zeros(maxCars,frameCount);
@@ -153,12 +174,12 @@ for currFrame=1:frameCount
         
         %if centroid initialized in this frame, no velocity calc yet
         if (carDetected(carCnt) == currFrame)
-            newCarPos = intersection;
+            newCarPos(:,carCnt) = intersection;
         %centroid initialized already, calculate velocity of past 2 frames
         else
-            oldCarPos = newCarPos;
-            newCarPos = intersection;
-            [velVec, velAbs] = getWorldVelocity(oldCarPos, newCarPos, framerate);
+            oldCarPos(:,carCnt) = newCarPos(:,carCnt);
+            newCarPos(:,carCnt) = intersection;
+            [velVec, velAbs] = getWorldVelocity(oldCarPos(:,carCnt), newCarPos(:,carCnt), framerate);
             velocitiesCars_x(carCnt,currFrame) = velVec(1);
             velocitiesCars_y(carCnt,currFrame) = velVec(2);
             velocitiesCars_abs(carCnt,currFrame) = velAbs;

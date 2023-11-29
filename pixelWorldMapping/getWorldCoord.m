@@ -22,26 +22,29 @@ function [intersect_p, o_p_vect] = ...
     origin_to_point = worldCoord(1:3)-origin;
     origin_to_point_n = origin_to_point./norm(origin_to_point);
     
-    %floor plane
+    %road plane
     plane_norm = [0;0;1];
-    plane_loc = [0;0;0];
+    plane_loc = [1500;0;0];
 
     %adjust floor plane for centroid intersection, assuming scene's
     %280m length and approximate centroid height at that distance of 1m
     %which is 0.2deg about y, then rotating about the z axis 20deg
-    ang1 = -0.2;
-    %ang1 = 0;
+    ang1 = -5;
     rotation1 = [cosd(ang1)   0   sind(ang1);
                  0            1          0;
                  -sind(ang1)  0   cosd(ang1)];
-    %ang2 = -20;
-    ang2 = 0;
+    ang2 = 45;
     rotation2 = [cosd(ang2)  -sind(ang2)  0;
                  sind(ang2)   cosd(ang2)  0;
                  0            0           1];
+    ang3 = 5;
+    rotation3 = [1          0           0;
+                 0   cosd(ang3)  -sind(ang3);
+                 0   sind(ang3)  cosd(ang3)];
     plane_norm_r1 = rotation1*plane_norm;
     plane_norm_r2 = rotation2*plane_norm_r1;
-    plane_norm_f = plane_norm_r2;
+    plane_norm_r3 = rotation3*plane_norm_r2;
+    plane_norm_f = plane_norm_r3;
 
     %calculate intersection point
     %equation to get intersection of vector+point and plane norm+point
