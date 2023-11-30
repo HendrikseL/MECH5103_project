@@ -7,7 +7,7 @@ clear all
 
 %%
 %video file location
-vFile = ('/video/third1080.mp4');
+vFile = ('/video/fourth1080.mp4');
 
 %turn video into a series of jpeg files
 [frameCount, imageDir] = videoProcessing(vFile);
@@ -16,7 +16,7 @@ vFile = ('/video/third1080.mp4');
 %centroids_u = ones([100, frameCount]).*-1;
 %centroids_v = ones([100, frameCount]).*-1;
 
-nFilter = 50;
+nFilter = 150;
 imageSum = zeros([1080,1920]);
 for i = 1:nFilter
     imagePath = fullfile(imageDir, ['Frame' int2str(i), '.jpg']);
@@ -25,7 +25,7 @@ end
 
 %This is the main loop
 %read in each image one by one
-for i = nFilter+1:frameCount    
+for i = nFilter+1:frameCount
     %Filter current frame
     [im, imageSum] = imageFilter(i,nFilter,imageDir,imageSum);
 

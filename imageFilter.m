@@ -7,20 +7,20 @@
 %}
 
 function [im, sum] = imageFilter(index,n,dir,sum)
-    %Read current frame and add it to the sum
-    imagePath = fullfile(dir, ['Frame' int2str(index), '.jpg']);
-    sum = sum + double(imread(imagePath));
-
     %Subtract outdated frame from sum
     imagePath = fullfile(dir, ['Frame' int2str(index-n), '.jpg']);
     sum = sum - double(imread(imagePath));
 
+    %Read current frame and add it to the sum
+    imagePath = fullfile(dir, ['Frame' int2str(index), '.jpg']);
+    sum = sum + double(imread(imagePath));
+
     %Apply gaussian blur to current frame and mean image
-    im = imgaussfilt(imread(imagePath),2.5);
-    imageMean = imgaussfilt(uint8(sum ./ n),2.5);
+    im = imgaussfilt(imread(imagePath),3);
+    imageMean = imgaussfilt(uint8(sum ./ n),3);
 
     %Perform image subtraction
     im = double(imageMean) - double(im);
-    im = abs(im) > 24;
+    im = abs(im) > 25;
     im = any(im, 3);
 end
