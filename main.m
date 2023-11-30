@@ -30,7 +30,7 @@ for i = nFilter+1:frameCount
     [im, imageSum] = imageFilter(i,nFilter,imageDir,imageSum);
 
     %Perform blob analysis
-    %[centroids_u(:,i), centroids_v(:,i)] = blobAnalysis(im);
+    blobAnalysis(im);
     imshow(im)
     %hold on
     %plot(centroids_u(:,i),centroids_v(:,i), 'r.');
