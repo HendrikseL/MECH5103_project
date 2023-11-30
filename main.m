@@ -13,8 +13,8 @@ vFile = ('/video/fourth1080.mp4');
 [frameCount, imageDir] = videoProcessing(vFile);
 
 
-%centroids_u = ones([100, frameCount]).*-1;
-%centroids_v = ones([100, frameCount]).*-1;
+centroids_u = ones([100, frameCount]).*-1;
+centroids_v = ones([100, frameCount]).*-1;
 
 nFilter = 150;
 imageSum = zeros([1080,1920]);
@@ -30,10 +30,10 @@ for i = nFilter+1:frameCount
     [im, imageSum] = imageFilter(i,nFilter,imageDir,imageSum);
 
     %Perform blob analysis
-    blobAnalysis(im);
+    [centroids_u(:,i), centroids_v(:,i)] = blobAnalysis(im);
     imshow(im)
-    %hold on
-    %plot(centroids_u(:,i),centroids_v(:,i), 'r.');
-    %hold off
+    hold on
+    plot(centroids_u(:,i),centroids_v(:,i), 'r.');
+    hold off
     pause(0.01)
 end

@@ -14,6 +14,10 @@ function [output_u,output_v] = blobAnalysis(input)
     im = double(padarray(input,[1 1],0,'both'));
     tag = 1;
     dict = dictionary();
+    x = [];
+    y = [];
+    output_u = ones(100,1).*-1;
+    output_v = ones(100,1).*-1;
 
     %First Pass
     for row = 2:height+1
@@ -74,5 +78,15 @@ function [output_u,output_v] = blobAnalysis(input)
             end
         end
     end
-    count = length(unique(im))-1
+    
+    %Identify Corners
+    for blob = unique(im)'
+        if blob ~= 0 && nnz(im==blob)>= 250
+            [row, col] = find(im == blob);
+            x = [x; max(col)];
+            y = [y; max(row)];
+        end
+    end
+    output_u(1:length(x)) = x;
+    output_v(1:length(y)) = y;
 end
