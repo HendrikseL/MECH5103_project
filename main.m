@@ -8,8 +8,7 @@ close all
 
 %%
 %video file location
-vFile = ('/video/visiontraffic.avi');
-imgRef = imread('./video/refImage.png');
+vFile = ('/video/fourth1080.mp4');
 
 %turn video into a series of jpeg files
 [frameCount, imageDir] = videoProcessing(vFile);
@@ -52,18 +51,30 @@ car_centroid_p = [1820, 681]; %acquired from pixel coord (u,v)
 
 
 %%
+%Initialize rolling average for filter
+nFilter = 150;
+imageSum = zeros([1080,1920]);
+for i = 1:nFilter
+    imagePath = fullfile(imageDir, ['Frame' int2str(i), '.jpg']);
+    imageSum = imageSum + double(imread(imagePath));
+end
+
+corners_u = ones([100, frameCount]).*-1;
+corners_v = ones([100, frameCount]).*-1;
+
 %This is the main loop
 %read in each image one by one
-for i = 1:1:frameCount
-    %create image filepath
-    imagePath = fullfile(imageDir, ['Frame' int2str(i), '.jpg']);
-    
-    %read in image
-    im = imread(imagePath);
-    % Background subtraction with reference image
-    %diffImage = double(imgRef) - double(im);
-    % and threshold above the noise level (say it's 10 gray levels.
-    %mask = abs(diffImage) > 40;
-    
-    %image(diffImage);
+for i = nFilter+1:frameCount
+    %Filter current frame
+    [im, imageSum] = imageFilter(i,nFilter,imageDir,imageSum);
+
+    %Perform blob analysis
+    [corners_u(:,i), corners_v(:,i)] = blobAnalysis(im);
+
+    %Display image and detected points
+    imshow(im)
+    hold on
+    plot(corners_u(:,i),corners_v(:,i), 'r.');
+    hold off
+    pause(0.01)
 end
