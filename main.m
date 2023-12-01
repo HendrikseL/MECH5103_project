@@ -125,8 +125,8 @@ else
 end
 
 %example centroid data (-1 is invalid)
-centroids_u = [test_u; test_u-200];
-centroids_v = [test_v; test_v];
+centroids_u = [test_u];% test_u-200];
+centroids_v = [test_v];% test_v];
 maxCars = size(centroids_u,1);
 
 %TODO: remove after test
@@ -144,6 +144,7 @@ positionsCars_z = zeros(maxCars,frameCount);
 velocitiesCars_x = zeros(maxCars,frameCount);
 velocitiesCars_y = zeros(maxCars,frameCount);
 velocitiesCars_abs = zeros(maxCars,frameCount);
+velocitiesCars_abs_3d = zeros(maxCars,frameCount);
 
 
 %% VELOCITY LOOP
@@ -179,10 +180,11 @@ for currFrame=1:frameCount
         else
             oldCarPos(:,carCnt) = newCarPos(:,carCnt);
             newCarPos(:,carCnt) = intersection;
-            [velVec, velAbs] = getWorldVelocity(oldCarPos(:,carCnt), newCarPos(:,carCnt), framerate);
+            [velVec, velAbs, velAbs3d] = getWorldVelocity(oldCarPos(:,carCnt), newCarPos(:,carCnt), framerate);
             velocitiesCars_x(carCnt,currFrame) = velVec(1);
             velocitiesCars_y(carCnt,currFrame) = velVec(2);
             velocitiesCars_abs(carCnt,currFrame) = velAbs;
+            velocitiesCars_abs_3d(carCnt,currFrame) = velAbs3d;
         end
     end
 end
