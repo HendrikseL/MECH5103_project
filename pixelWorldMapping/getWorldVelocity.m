@@ -1,11 +1,13 @@
-function [velocity, velocity_abs, velocity_abs_3D] = getWorldVelocity(position1, position2, frameRate)
 %GETWORLDVELOCITY Calculated velocity in world coordinates
+%       Author: Vladislav Pripotnev
+%       ID:300331564
 %   inputs
 %       position1: t0 world coordinates
 %       position2: t0+1 world coordinates
 %       frameRate: frames per second of video
 %   outputs
 %       velocity: world coordinate velocity
+function [velocity, velocity_abs, velocity_abs_3D] = getWorldVelocity(position1, position2, frameRate)
     timeD = 1/frameRate;
 
     x_dkm = (position2(1)-position1(1))/100/1000;

@@ -1,6 +1,6 @@
-function [intersect_p, o_p_vect] = ... 
-    getWorldCoord(pixelCoord, PPMi, origin)
 %GETWORLDCOORD Outputs intersection of pixel ray with road plane
+%       Author: Vladislav Pripotnev
+%       ID:300331564
 %   inputs
 %       pixelCoord: two element vector with pixel coordinates to be mapped
 %       PPMi: pseudo inverse of PPM to perform mapping
@@ -8,6 +8,9 @@ function [intersect_p, o_p_vect] = ...
 %   outputs
 %       intersect_p: intersection point world coordinates (z should be 0)
 %       o_p_vect: unit vector from camera to intersection point
+function [intersect_p, o_p_vect] = ... 
+    getWorldCoord(pixelCoord, PPMi, origin)
+
     pixelCoord = [pixelCoord, 1]; %acquired from pixel coord (u,v,1)
     
     %calculate one of the solutions to the equation yielding a 1x4 vector

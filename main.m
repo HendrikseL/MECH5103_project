@@ -1,4 +1,5 @@
 %{
+%       Authors: Vladislav Pripotnev, Luke Hendrikse, Paul Cormier
 This is the main script for the MECH5103 project.
 This function will analyze a video and identify objects moving in it.
 %}
@@ -6,6 +7,10 @@ This function will analyze a video and identify objects moving in it.
 clear
 close all
 clc
+
+realCentroids = 1;
+savedCentroids = 0;
+framerate = 30; %todo: use metadata framerate
 
 
 %% SCENE SELECT
@@ -59,6 +64,7 @@ imgRef = imread('./video/refImage.png');
 if exist(selectionProcessedDir,'dir')
     fprintf("Video file already processed, using local files.\n")
     imageDir = selectionProcessedDir;
+    load('frameCount.mat')
 else
     [frameCount, imageDir] = videoProcessing(vFile);
 end
@@ -102,35 +108,80 @@ pixelCoordinates_scene_f = [u1_ppm_f; v1_ppm_f];
     worldCoordinates_scene_f);
 
 
-%% TEST DATA
-%--------------------------------------------------------------------------
-%Example calculation, to be integrated into main loop when we have
-%centroid determination from pixel subtraction
-
-framerate = 30; %todo: use metadata framerate
-
-if exist('testFramePixels_v4_2.mat','file')
-    load('testFramePixels_v4_2.mat');
-else
-    for testFrame=405:504
-        testFrameName = append('./video/tempFrames/', selectionFileName, '/Frame', int2str(testFrame), '.jpg');
-        imageMatrixScene = imread(testFrameName,'jpg');
-        testFigNum = 8080;
-        figure(testFigNum)
-        imagesc(imageMatrixScene)
-        axis('equal')
-        [test_u(testFrame-404),test_v(testFrame-404)] = ginput(1); 
-        close(testFigNum)
-    end
+%% FILTER INIT
+%Initialize rolling average for filter
+nFilter = 150;
+imageSum = zeros([1080,1920]);
+for i = 1:nFilter
+    imagePath = fullfile(imageDir, ['Frame' int2str(i), '.jpg']);
+    imageSum = imageSum + double(imread(imagePath));
 end
 
-%example centroid data (-1 is invalid)
-centroids_u = [test_u];% test_u-200];
-centroids_v = [test_v];% test_v];
-maxCars = size(centroids_u,1);
+corners_u = ones([100, frameCount]).*-1;
+corners_v = ones([100, frameCount]).*-1;
 
-%TODO: remove after test
-frameCount = length(centroids_u);
+if (realCentroids)
+    %% CENTROID LOOP
+    %This is first loop to get centroid data
+    %read in each image one by one
+    for i = nFilter+1:frameCount
+        %Filter current frame
+        [im, imageSum] = imageFilter(i,nFilter,imageDir,imageSum);
+    
+        %Perform blob analysis
+        [corners_u(:,i), corners_v(:,i)] = blobAnalysis(im);
+    
+        %Display image and detected points
+        imshow(im)
+        hold on
+        plot(corners_u(:,i),corners_v(:,i), 'r.');
+        hold off
+        pause(0.01)
+    end
+
+    car_pixel_u = corners_u;
+    car_pixel_v = corners_v;
+elseif (savedCentroids)
+    load('cornersData_v2.mat')
+    car_pixel_u = corners_u;
+    car_pixel_v = corners_v;
+else
+    %% TEST DATA
+    % manual centroid/corner selection for testing
+    
+    if exist('testFramePixels_v4_2.mat','file')
+        load('testFramePixels_v4_2.mat');
+    else
+        for testFrame=405:504
+            testFrameName = append('./video/tempFrames/', selectionFileName, '/Frame', int2str(testFrame), '.jpg');
+            imageMatrixScene = imread(testFrameName,'jpg');
+            testFigNum = 8080;
+            figure(testFigNum)
+            imagesc(imageMatrixScene)
+            axis('equal')
+            [test_u(testFrame-404),test_v(testFrame-404)] = ginput(1); 
+            close(testFigNum)
+        end
+    end
+    
+    %example centroid data (-1 is invalid)
+    car_pixel_u = [test_u; test_u-200];
+    car_pixel_v = [test_v; test_v];
+end
+
+%% BLOB DATA PROCESSING
+% blob analysis will not be in any particular order, so matching blobs from
+% frame to frame needs to be done
+[car_pixel_u, car_pixel_v] = blobMatching(car_pixel_u, car_pixel_v);
+
+%filter out any blobs that only appear for a few frames
+frameThreshold = 100;
+[car_pixel_u_f, car_pixel_v_f] = blobCleansing(car_pixel_u, car_pixel_v, frameThreshold);
+
+
+%% POSITION VELOCITY INIT
+maxCars = size(car_pixel_u_f,1);
+frameCount = size(car_pixel_u_f,2);
 
 %first frame that a car is detected tracker
 carDetected = zeros(maxCars,1);
@@ -153,9 +204,9 @@ velocitiesCars_abs_3d = zeros(maxCars,frameCount);
 for currFrame=1:frameCount
     %go through every blob and see if it was detected in this frame
     for carCnt=1:maxCars
-        car_centroid_p = [centroids_u(carCnt,currFrame) centroids_v(carCnt,currFrame)];
+        car_pixel = [car_pixel_u_f(carCnt,currFrame) car_pixel_v_f(carCnt,currFrame)];
         %centroid value is invalid
-        if (car_centroid_p(1) == -1)
+        if (car_pixel(1) == -1)
             %car has been processed and is now out of frame
             %OR
             %car has yet to enter frame
@@ -167,7 +218,7 @@ for currFrame=1:frameCount
                 carDetected(carCnt) = currFrame;
             end
             %calculate intersection of this centroid
-            [intersection,vect_n] = getWorldCoord(car_centroid_p,PPMi,camOrigin);
+            [intersection,vect_n] = getWorldCoord(car_pixel,PPMi,camOrigin);
             positionsCars_x(carCnt,currFrame) = intersection(1);
             positionsCars_y(carCnt,currFrame) = intersection(2);
             positionsCars_z(carCnt,currFrame) = intersection(3);
@@ -189,34 +240,9 @@ for currFrame=1:frameCount
     end
 end
 
+%% RESULTS
+%calculate some metrics
+[averageVel, averageMovingVel] = sceneMetrics(velocitiesCars_abs);
+%plot the scene
+plotScene(camOrigin, positionsCars_x, positionsCars_y, positionsCars_z);
 
-%%
-%Initialize rolling average for filter
-nFilter = 150;
-imageSum = zeros([1080,1920]);
-for i = 1:nFilter
-    imagePath = fullfile(imageDir, ['Frame' int2str(i), '.jpg']);
-    imageSum = imageSum + double(imread(imagePath));
-end
-
-corners_u = ones([100, frameCount]).*-1;
-corners_v = ones([100, frameCount]).*-1;
-
-
-%% CENTROID LOOP
-%This is first loop to get centroid data
-%read in each image one by one
-for i = nFilter+1:frameCount
-    %Filter current frame
-    [im, imageSum] = imageFilter(i,nFilter,imageDir,imageSum);
-
-    %Perform blob analysis
-    [corners_u(:,i), corners_v(:,i)] = blobAnalysis(im);
-
-    %Display image and detected points
-    imshow(im)
-    hold on
-    plot(corners_u(:,i),corners_v(:,i), 'r.');
-    hold off
-    pause(0.01)
-end

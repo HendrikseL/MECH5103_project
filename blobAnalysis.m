@@ -83,7 +83,7 @@ function [output_u,output_v] = blobAnalysis(input)
     for blob = unique(im)'
         if blob ~= 0 && nnz(im==blob)>= 250
             [row, col] = find(im == blob);
-            x = [x; max(col)];
+            x = [x; min(col)];
             y = [y; max(row)];
         end
     end
