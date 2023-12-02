@@ -12,7 +12,6 @@ realCentroids = 1;
 savedCentroids = 0;
 framerate = 30; %todo: use metadata framerate
 
-
 %% SCENE SELECT
 %test case selection and init
 sceneSelect = 4;
