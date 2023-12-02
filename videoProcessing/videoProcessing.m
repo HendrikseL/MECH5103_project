@@ -44,5 +44,5 @@ function [framesCount, dir] = videoProcessing(vFile)
     for i =1:1:framesCount
         frames = read(video, i);
         fullPath = fullfile(dir, ['Frame' int2str(i), '.jpg']);
-        %imwrite(frames, fullPath);
+        imwrite(frames, fullPath);
     end

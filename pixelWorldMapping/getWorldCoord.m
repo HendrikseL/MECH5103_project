@@ -1,6 +1,6 @@
-function [intersect_p, o_p_vect] = ... 
-    getWorldCoord(pixelCoord, PPMi, origin)
 %GETWORLDCOORD Outputs intersection of pixel ray with road plane
+%       Author: Vladislav Pripotnev
+%       ID:300331564
 %   inputs
 %       pixelCoord: two element vector with pixel coordinates to be mapped
 %       PPMi: pseudo inverse of PPM to perform mapping
@@ -8,6 +8,9 @@ function [intersect_p, o_p_vect] = ...
 %   outputs
 %       intersect_p: intersection point world coordinates (z should be 0)
 %       o_p_vect: unit vector from camera to intersection point
+function [intersect_p, o_p_vect] = ... 
+    getWorldCoord(pixelCoord, PPMi, origin)
+
     pixelCoord = [pixelCoord, 1]; %acquired from pixel coord (u,v,1)
     
     %calculate one of the solutions to the equation yielding a 1x4 vector
@@ -22,14 +25,39 @@ function [intersect_p, o_p_vect] = ...
     origin_to_point = worldCoord(1:3)-origin;
     origin_to_point_n = origin_to_point./norm(origin_to_point);
     
-    %calculate intersection point
+    %road plane
     plane_norm = [0;0;1];
-    plane_loc = [0;0;0];
-    
-    %equation to get intersection of vector+point and plane norm+point
-    intersect_p = origin + (plane_loc-origin)'*plane_norm/ ...
-        (plane_norm'*origin_to_point_n) * origin_to_point_n;
+    plane_loc = [1500;0;0];
 
+    %adjust floor plane for centroid intersection, assuming scene's
+    %280m length and approximate centroid height at that distance of 1m
+    %which is 0.2deg about y, then rotating about the z axis 20deg
+    ang1 = -5;
+    rotation1 = [cosd(ang1)   0   sind(ang1);
+                 0            1          0;
+                 -sind(ang1)  0   cosd(ang1)];
+    ang2 = 45;
+    rotation2 = [cosd(ang2)  -sind(ang2)  0;
+                 sind(ang2)   cosd(ang2)  0;
+                 0            0           1];
+    ang3 = 5;
+    rotation3 = [1          0           0;
+                 0   cosd(ang3)  -sind(ang3);
+                 0   sind(ang3)  cosd(ang3)];
+    plane_norm_r1 = rotation1*plane_norm;
+    plane_norm_r2 = rotation2*plane_norm_r1;
+    plane_norm_r3 = rotation3*plane_norm_r2;
+    plane_norm_f = plane_norm_r3;
+
+    %calculate intersection point
+    %equation to get intersection of vector+point and plane norm+point
+    intersect_p = origin + (plane_loc-origin)'*plane_norm_f/ ...
+        (plane_norm_f'*origin_to_point_n) * origin_to_point_n;
+
+    %project intersection down to ground plane
+    %intersect_p(3) = 0;
+
+    %output vector
     o_p_vect = origin_to_point_n;
 
 end

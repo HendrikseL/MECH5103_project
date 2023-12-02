@@ -1,5 +1,6 @@
-function [PPM, PPMi, origin] = createPPM(pCoord,wCoord)
 %CREATEPPM Calculate PPM, PPMi, and origin of camera using measurements
+%       Author: Vladislav Pripotnev
+%       ID:300331564
 %   inputs
 %       wCoord: vector of length 6 of world coordinate measurements
 %       pCoord: corresponding pixel coordinates of same 6 measured points
@@ -7,7 +8,7 @@ function [PPM, PPMi, origin] = createPPM(pCoord,wCoord)
 %       PPM: projection matrix for mapping wCoord to pCoord
 %       PPMi: pseudo inverse of PPM to map pCoord to wCoord
 %       origin: origin of camera taking video
-
+function [PPM, PPMi, origin] = createPPM(pCoord,wCoord)
     nPpmPoints = 6;
     worldCoord_X = wCoord(1,1:nPpmPoints); 
     worldCoord_Y = wCoord(2,1:nPpmPoints);
