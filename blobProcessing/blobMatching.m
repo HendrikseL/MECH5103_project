@@ -13,7 +13,7 @@ function [car_pixel_u_f, car_pixel_v_f] = blobMatching(car_pixel_u, car_pixel_v)
     numBlobsPrev = 0;
     numBlobs = 0;
     uniqueBlobCnt = 0;
-    moveThresh = 100;
+    moveThresh = 50;
     car_pixel_u_f = -ones(800,frameCount);
     car_pixel_v_f = -ones(800,frameCount);
 

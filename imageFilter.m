@@ -16,11 +16,11 @@ function [im, sum] = imageFilter(index,n,dir,sum)
     sum = sum + double(imread(imagePath));
 
     %Apply gaussian blur to current frame and mean image
-    im = imgaussfilt(imread(imagePath),3);
-    imageMean = imgaussfilt(uint8(sum ./ n),3);
+    im = imgaussfilt(imread(imagePath),4);
+    imageMean = imgaussfilt(uint8(sum ./ n),4);
 
     %Perform image subtraction
     im = double(imageMean) - double(im);
-    im = abs(im) > 25;
+    im = abs(im) > 32;
     im = any(im, 3);
 end
